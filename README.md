@@ -46,7 +46,7 @@ Berikut adalah visualisasi antarmuka dan fitur utama dari SecurePass Analyzer:
 
 ### 4. Dasbor Statistik & Riwayat (Dashboard Stats & Audit Log)
 <p align="center">
-  <img src="docs-assest/history.png" alt="Log Riwayat Audit" width="85%">
+  <img src="docs-assets/history.png" alt="Log Riwayat Audit" width="85%">
 </p>
 <p align="center">
   <em>Halaman pemantau data analitik yang menyajikan agregasi total audit, rata-rata skor keamanan, dan rasio deteksi kebocoran. Seluruh riwayat pengujian dicatat menggunakan format <strong>Waktu Indonesia Barat (WIB)</strong> dan dilengkapi fitur penghapusan log (kapabilitas CRUD).</em>
