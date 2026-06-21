@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card p-4">
+            <h3 class="text-cyber border-bottom pb-2 mb-3"><i class="fa-solid fa-terminal me-2"></i>Input Konsol</h3>
+            <div class="mb-3">
+                <label class="form-label text-desc">Masukkan Password untuk Diuji:</label>
+                <div class="input-group">
+                    <input type="password" id="passwordInput" class="form-control bg-dark text-white border-secondary" placeholder="Ketik kata sandi...">
+                    <button class="btn btn-outline-secondary" type="button" id="toggleView"><i class="fa-solid fa-eye text-white"></i></button>
+                </div>
+            </div>
+            <button id="btnAnalyze" class="btn btn-cyber w-100"><i class="fa-solid fa-shield-halved me-2"></i>Jalankan Audit Sistem</button>
+        </div>
+        
+        <div class="card p-4 mt-4 d-none" id="educationCard">
+            <h4 class="text-warning"><i class="fa-solid fa-circle-exclamation me-2"></i>Rekomendasi Edukasi Keamanan</h4>
+            <ul id="feedbackList" class="text-desc mt-2"></ul>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card p-4 d-none" id="resultCard">
+            <h3 class="text-cyber text-center mb-3">Hasil Matriks Keamanan</h3>
+            
+            <div class="text-center mb-3">
+                <h5 class="mb-1 text-desc">Kategori: <span id="lblCategory" class="fw-bold text-cyber"></span></h5>
+                <div class="progress bg-dark" style="height: 25px;">
+                    <div id="scoreBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
+                </div>
+            </div>
+
+            <hr class="border-secondary">
+            
+            <h5 class="text-cyber"><i class="fa-solid fa-circle-nodes me-2"></i>Estimasi Waktu Retas (Brute Force)</h5>
+            <table class="table table-dark table-striped table-bordered mt-2">
+                <thead>
+                    <tr><th>Vektor Serangan</th><th>Waktu yang Dibutuhkan</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Standard Multi-Core CPU</td><td id="txtCpu" class="text-danger fw-bold"></td></tr>
+                    <tr><td>High-End GPU Array</td><td id="txtGpu" class="text-warning fw-bold"></td></tr>
+                    <tr><td>Distributed Botnet</td><td id="txtBotnet" class="text-warning fw-bold"></td></tr>
+                </tbody>
+            </table>
+
+            <hr class="border-secondary">
+
+            <div class="p-3 rounded bg-dark border" id="breachAlertBox">
+                <h5 class="mb-1 text-white"><i class="fa-solid fa-database me-2"></i>Status Kebocoran Data (HIBP API)</h5>
+                <p id="breachResultText" class="mb-0 text-white"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('toggleView').addEventListener('click', function() {
+        const input = document.getElementById('passwordInput');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    });
+
+    document.getElementById('btnAnalyze').addEventListener('click', function() {
+        const btn = document.getElementById('btnAnalyze');
+        const passwordInput = document.getElementById('passwordInput');
+        const password = passwordInput.value.trim(); // Gunakan .trim() untuk menghapus spasi kosong
+
+        // Validasi: Jika input kosong, batalkan proses
+        if(!password || password === "") {
+            alert("Isi password terlebih dahulu!");
+            return;
+        }
+
+        // Kunci tombol agar tidak bisa di-klik berkali-kali (Mencegah Bug Duplikasi)
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Memproses Audit...';
+
+        const formData = new FormData();
+        formData.append('password', password);
+
+        fetch('/analyzer', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            // Tampilkan kartu hasil
+            document.getElementById('resultCard').classList.remove('d-none');
+            document.getElementById('educationCard').classList.remove('d-none');
+            
+            // Render Data Kekuatan
+            const strength = data.strength;
+            document.getElementById('lblCategory').innerText = strength.category;
+            const bar = document.getElementById('scoreBar');
+            bar.style.width = strength.score + "%";
+            bar.innerText = strength.score + "%";
+            
+            // Atur Warna Progress Bar
+            bar.className = "progress-bar progress-bar-striped progress-bar-animated";
+            if(strength.score < 40) bar.classList.add('bg-danger');
+            else if(strength.score < 75) bar.classList.add('bg-warning');
+            else bar.classList.add('bg-success');
+
+            // Render Feedback Edukasi
+            const fList = document.getElementById('feedbackList');
+            fList.innerHTML = "";
+            strength.feedback.forEach(text => {
+                let li = document.createElement('li');
+                li.innerText = text;
+                li.className = "text-white";
+                fList.appendChild(li);
+            });
+
+            // Render Estimasi Waktu Brute Force
+            document.getElementById('txtCpu').innerText = data.brute_force.cpu_time;
+            document.getElementById('txtGpu').innerText = data.brute_force.gpu_time;
+            document.getElementById('txtBotnet').innerText = data.brute_force.botnet_time;
+
+            // Render Hasil Kebocoran
+            const bBox = document.getElementById('breachAlertBox');
+            const bText = document.getElementById('breachResultText');
+            if(data.breach.is_breached) {
+                bBox.className = "p-3 rounded bg-danger border border-danger text-white";
+                bText.innerHTML = `<strong>Peringatan Kritis!</strong> Password ini telah ditemukan sebanyak <strong>${data.breach.count.toLocaleString()} kali</strong> dalam database kebocoran publik HIBP. Segera ganti!`;
+            } else {
+                bBox.className = "p-3 rounded bg-success border border-success text-white";
+                bText.innerHTML = `<strong>Aman!</strong> Password ini bersih dan tidak ditemukan di catatan kebocoran data manapun.`;
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("Terjadi kesalahan sistem saat melakukan audit.");
+        })
+        .finally(() => {
+            // Buka kembali kunci tombol setelah selesai diproses
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-shield-halved me-2"></i>Jalankan Audit Sistem';
+        });
+    });
+</script>
+{% endblock %}
