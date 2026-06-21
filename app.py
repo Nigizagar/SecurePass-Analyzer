@@ -12,9 +12,6 @@ from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 
-# ==========================================
-# 1. KONFIGURASI & LOGIKA DATABASE (SQLite)
-# ==========================================
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'securepass.db')
 
 def init_db():
@@ -70,33 +67,24 @@ def get_history_data_wib():
         data = dict(row)
         if 'checked_at' in data and data['checked_at']:
             timestamp_str = str(data['checked_at']).strip()
-            try:
-                # Opsi A: Jika data disimpan dari /analyzer baru (Format: 'YYYY-MM-DD HH:MM:SS')
+            try:                
                 if len(timestamp_str) == 19 and timestamp_str[4] == '-' and timestamp_str[7] == '-':
                     dt = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
-                    data['checked_at'] = dt.strftime('%d-%m-%Y %H:%M:%S WIB')
-                # Opsi B: Jika data sudah mengandung teks 'WIB', biarkan saja
+                    data['checked_at'] = dt.strftime('%d-%m-%Y %H:%M:%S WIB')                
                 elif 'WIB' in timestamp_str:
-                    pass
-                # Opsi C: Jika data masih berformat UTC bawaan SQLite lama
+                    pass   
                 else:
                     utc_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
                     utc_time = utc_time.replace(tzinfo=ZoneInfo('UTC'))
                     wib_time = utc_time.astimezone(ZoneInfo('Asia/Jakarta'))
                     data['checked_at'] = wib_time.strftime('%d-%m-%Y %H:%M:%S WIB')
             except Exception as e:
-                # JIKA ERROR, JANGAN BUANG DATANYA. Tampilkan teks aslinya ke tabel agar tidak kosong!
                 print(f"Format matching bypassed: {e}")
                 data['checked_at'] = timestamp_str
                 
         wib_history.append(data)
         
     return wib_history
-
-
-# ==========================================
-# 2. LOGIKA UTAMA CYBER SECURITY ENGINE
-# ==========================================
 
 def check_password_strength(password):
     """Menganalisis kekuatan password berdasarkan kompleksitas struktur."""
@@ -112,13 +100,11 @@ def check_password_strength(password):
     has_digit = bool(re.search(r'[0-9]', password))
     has_symbol = bool(re.search(r'[^A-Za-z0-9]', password))
 
-    # Skoring panjang
     if length >= 16: score += 40
     elif length >= 12: score += 30
     elif length >= 8: score += 15
     else: feedback.append("Password sangat pendek. Gunakan minimal 12-16 karakter.")
 
-    # Skoring variasi karakter
     if has_upper: score += 10
     else: feedback.append("Tambahkan huruf besar (A-Z).")
     if has_lower: score += 10
@@ -128,7 +114,6 @@ def check_password_strength(password):
     if has_symbol: score += 10
     else: feedback.append("Tambahkan simbol spesial (!, @, #, $, dll).")
 
-    # Deteksi pola buruk
     if re.search(r'(123|abc|qwerty|pass)', password.lower()):
         score -= 20
         feedback.append("Terdeteksi pola keyboard/kata kamus umum ('123', 'qwerty', dll).")
@@ -145,7 +130,6 @@ def check_password_strength(password):
 
     return {"length": length, "score": score, "category": category, "feedback": feedback if feedback else ["Sandi memenuhi standar keamanan modern."]}
 
-
 def estimate_brute_force(password):
     """Mengestimasi waktu retas berdasarkan ruang entropi karakter."""
     if not password:
@@ -161,10 +145,9 @@ def estimate_brute_force(password):
 
     combinations = charset_size ** length
     
-    # Kecepatan tebakan per detik (Kekuatan Komputasi Aktual)
-    guesses_cpu = 10**8       # 100 Juta tebakan/dtk
-    guesses_gpu = 10**11      # 100 Miliar tebakan/dtk
-    guesses_botnet = 10**13   # 10 Triliun tebakan/dtk
+    guesses_cpu = 10**8       
+    guesses_gpu = 10**11      
+    guesses_botnet = 10**13   
 
     def format_time(seconds):
         if seconds < 1: return "Instan (< 1 detik)"
@@ -184,7 +167,6 @@ def estimate_brute_force(password):
         "gpu_time": format_time(combinations / guesses_gpu),
         "botnet_time": format_time(combinations / guesses_botnet)
     }
-
 
 def check_password_breach(password):
     """Pemeriksaan Kebocoran Data menggunakan k-Anonymity HIBP API."""
@@ -216,7 +198,7 @@ def generate_secure_password(length=14, use_upper=True, use_lower=True, use_digi
     if use_upper: charset += string.ascii_uppercase
     if use_lower: charset += string.ascii_lowercase
     if use_digits: charset += string.digits
-    if use_symbols: charset += "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    if use_symbols: charset += ("!@#$%^&*()_+-=[]{}|;:,.<>?")
     if not charset: charset = string.ascii_lowercase + string.digits
 
     password = []
@@ -230,16 +212,10 @@ def generate_secure_password(length=14, use_upper=True, use_lower=True, use_digi
     secrets.SystemRandom().shuffle(password)
     return "".join(password)
 
-
-# ==========================================
-# 3. ROUTING / ENDPOINT WEB FLASK
-# ==========================================
-
 @app.context_processor
 def utility_processor():
     return dict(round=round)
 
-# Inisialisasi DB saat startup
 init_db()
 
 @app.route('/')
@@ -254,26 +230,21 @@ def analyzer():
         brute_force = estimate_brute_force(password)
         breach = check_password_breach(password)
         
-        # Buka koneksi
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Ambil waktu WIB sekarang secara aktual
         wib_now = datetime.now(ZoneInfo('Asia/Jakarta')).strftime('%Y-%m-%d %H:%M:%S')
         
-        # Eksekusi insert ke tabel history
         cursor.execute('''
             INSERT INTO password_analysis_history (length, score, category, brute_force_duration, checked_at)
             VALUES (?, ?, ?, ?, ?)
         ''', (strength['length'], strength['score'], strength['category'], brute_force['gpu_time'], wib_now))
         
-        # Eksekusi insert ke tabel breach (sesuaikan nama kolom database Anda di sini)
         cursor.execute('''
             INSERT INTO breach_checks (is_breached, breach_count)
             VALUES (?, ?)
         ''', (1 if breach['is_breached'] else 0, breach['count']))
         
-        # Commit dan tutup
         conn.commit()
         conn.close()
 
@@ -282,10 +253,8 @@ def analyzer():
 
 @app.route('/history')
 def history():
-    # Ambil data history yang sudah otomatis dikonversi ke WIB
     history_data = get_history_data_wib()
     
-    # Ambil data statistik seperti biasa
     conn = get_db_connection()
     stats = conn.execute('SELECT COUNT(*) as total, AVG(score) as avg_score FROM password_analysis_history').fetchone()
     breach_stats = conn.execute('SELECT SUM(is_breached) as breached_total, COUNT(*) as total_checks FROM breach_checks').fetchone()
@@ -305,16 +274,12 @@ def delete_history(id):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 1. Pastikan ID dikonversi ke integer murni untuk SQLite
         target_id = int(id)
         
-        # 2. Eksekusi perintah hapus
         cursor.execute('DELETE FROM password_analysis_history WHERE id = ?', (target_id,))
         
-        # 3. KUNCI UTAMA: Paksa database untuk menyimpan perubahan saat itu juga
         conn.commit()
         
-        # Periksa apakah ada baris yang benar-benar terhapus di database
         if cursor.rowcount > 0:
             return jsonify({"status": "success", "message": "Riwayat berhasil dihapus dari database secara permanen."})
         else:
@@ -339,6 +304,43 @@ def clear_all_history():
         return jsonify({"status": "success", "message": "Seluruh log riwayat berhasil dibersihkan!"})
     except Exception as e:
         return jsonify({"status": "error", "message": f"Gagal mengosongkan database: {str(e)}"}), 500
+
+@app.route('/generator', methods=['GET', 'POST'])
+def generator():
+    """Rute untuk menangani pembuatan password kriptografis yang aman."""
+    if request.method == 'POST':
+        # Mengambil parameter kustomisasi dari frontend (default ke True/14 jika kosong)
+        length = int(request.form.get('length', 14))
+        use_upper = request.form.get('upper', 'true') == 'true'
+        use_lower = request.form.get('lower', 'true') == 'true'
+        use_digits = request.form.get('digits', 'true') == 'true'
+        use_symbols = request.form.get('symbols', 'true') == 'true'
+        
+        # Jalankan fungsi generator secure yang sudah Anda miliki di atas
+        password_generated = generate_secure_password(
+            length=length, 
+            use_upper=use_upper, 
+            use_lower=use_lower, 
+            use_digits=use_digits, 
+            use_symbols=use_symbols
+        )
+        
+        # Log pembuatan ke database tabel 'generated_passwords'
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO generated_passwords (length, includes_uppercase, includes_lowercase, includes_numbers, includes_symbols)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (length, 1 if use_upper else 0, 1 if use_lower else 0, 1 if use_digits else 0, 1 if use_symbols else 0))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Database Logging Error (Generator): {e}")
+
+        return jsonify({"password": password_generated})
+        
+    return render_template('generator.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

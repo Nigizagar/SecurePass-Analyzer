@@ -1,48 +1,78 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="row align-items-center py-5">
-    <div class="col-md-6">
-        <h1 class="display-4 fw-bold text-cyber mb-3">Audit Eksperimental Keamanan Password</h1>
-        <p class="lead text-desc">Uji ketahanan password Anda terhadap serangan komputasi brute-force, dan validasi kebocoran database global dengan integritas privasi tinggi menggunakan sistem <strong>k-Anonymity</strong>.</p>
-        <div class="mt-4">
-            <a href="/analyzer" class="btn btn-cyber btn-lg me-3"><i class="fa-solid fa-magnifying-glass-chart me-2"></i>Mulai Analisis</a>
-            <a href="/generator" class="btn btn-outline-light btn-lg"><i class="fa-solid fa-gears me-2"></i>Buat Password</a>
-        </div>
+  <div class="col-md-6">
+    <h1 class="display-4 fw-bold text-cyber mb-3">
+      Audit Eksperimental Keamanan Password
+    </h1>
+    <p class="lead text-desc">
+      Uji ketahanan password Anda terhadap serangan komputasi brute-force, dan
+      validasi kebocoran database global dengan integritas privasi tinggi
+      menggunakan sistem <strong>k-Anonymity</strong>.
+    </p>
+    <div class="mt-4">
+      <a href="/analyzer" class="btn btn-cyber btn-lg me-3"
+        ><i class="fa-solid fa-magnifying-glass-chart me-2"></i>Mulai
+        Analisis</a
+      >
+      <a href="/generator" class="btn btn-outline-light btn-lg"
+        ><i class="fa-solid fa-gears me-2"></i>Buat Password</a
+      >
     </div>
-    <div class="col-md-6 text-center mt-5 mt-md-0">
-        <i class="fa-solid fa-user-lock text-cyber" style="font-size: 14rem; filter: drop-shadow(0 0 20px rgba(0,255,204,0.3));"></i>
-    </div>
+  </div>
+  <div class="col-md-6 text-center mt-5 mt-md-0">
+    <i
+      class="fa-solid fa-user-lock text-cyber"
+      style="
+        font-size: 14rem;
+        filter: drop-shadow(0 0 20px rgba(0, 255, 204, 0.3));
+      "
+    ></i>
+  </div>
 </div>
 
-<hr class="border-secondary my-5">
+<hr class="border-secondary my-5" />
 
 <div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 p-4">
-            <h4 class="text-cyber mb-3">
-                <i class="fa-solid fa-skull-crossbones me-2 text-danger"></i>Apa itu Brute Force Attack?
-            </h4>
-            <p class="text-desc">
-                <strong>Brute Force</strong> adalah metode serangan siber di mana peretas (hacker) mencoba menebak password Anda dengan cara menguji setiap kemungkinan kombinasi karakter secara otomatis menggunakan komputer bertenaga tinggi.
-            </p>
-            <p class="text-desc small text-muted">
-                Semakin pendek dan sederhana password Anda, semakin sedikit ruang kombinasi yang harus dicoba, sehingga mesin peretas seperti GPU array atau Botnet dapat membongkarnya hanya dalam hitungan detik atau menit.
-            </p>
-        </div>
+  <div class="col-md-6 mb-4">
+    <div class="card h-100 p-4">
+      <h4 class="text-cyber mb-3">
+        <i class="fa-solid fa-skull-crossbones me-2 text-danger"></i>Apa itu
+        Brute Force Attack?
+      </h4>
+      <p class="text-desc">
+        <strong>Brute Force</strong> adalah metode serangan siber di mana
+        peretas (hacker) mencoba menebak password Anda dengan cara menguji
+        setiap kemungkinan kombinasi karakter secara otomatis menggunakan
+        komputer bertenaga tinggi.
+      </p>
+      <p class="text-desc small text-muted">
+        Semakin pendek dan sederhana password Anda, semakin sedikit ruang
+        kombinasi yang harus dicoba, sehingga mesin peretas seperti GPU array
+        atau Botnet dapat membongkarnya hanya dalam hitungan detik atau menit.
+      </p>
     </div>
+  </div>
 
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 p-4">
-            <h4 class="text-cyber mb-3">
-                <i class="fa-solid fa-mask me-2 text-info"></i>Apa itu Sistem k-Anonymity?
-            </h4>
-            <p class="text-desc">
-                <strong>k-Anonymity</strong> adalah algoritma privasi yang memastikan data sensitif Anda tidak bocor saat dikirim ke internet. Dalam aplikasi ini, password asli Anda <strong>tidak pernah dikirim</strong> ke server luar.
-            </p>
-            <p class="text-desc small text-muted">
-                Aplikasi ini mengubah password Anda menjadi kode acak (SHA-1 Hash), lalu <em>hanya mengirimkan 5 karakter pertama</em> ke API pihak ketiga. Server luar akan mengembalikan ribuan kecocokan anonim, dan aplikasi kita akan mencocokkan sisanya secara lokal di komputer Anda sendiri. Privasi Anda terjamin 100%.
-            </p>
-        </div>
+  <div class="col-md-6 mb-4">
+    <div class="card h-100 p-4">
+      <h4 class="text-cyber mb-3">
+        <i class="fa-solid fa-mask me-2 text-info"></i>Apa itu Sistem
+        k-Anonymity?
+      </h4>
+      <p class="text-desc">
+        <strong>k-Anonymity</strong> adalah algoritma privasi yang memastikan
+        data sensitif Anda tidak bocor saat dikirim ke internet. Dalam aplikasi
+        ini, password asli Anda <strong>tidak pernah dikirim</strong>
+        ke server luar.
+      </p>
+      <p class="text-desc small text-muted">
+        Aplikasi ini mengubah password Anda menjadi kode acak (SHA-1 Hash), lalu
+        <em>hanya mengirimkan 5 karakter pertama</em> ke API pihak ketiga.
+        Server luar akan mengembalikan ribuan kecocokan anonim, dan aplikasi
+        kita akan mencocokkan sisanya secara lokal di komputer Anda sendiri.
+        Privasi Anda terjamin 100%.
+      </p>
     </div>
+  </div>
 </div>
 {% endblock %}

@@ -1,138 +1,176 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="row mb-4">
-    <div class="col-12">
-        <h2 class="text-cyber mb-2"><i class="fa-solid fa-chart-pie me-2"></i>Dashboard Statistik & Riwayat Audit</h2>
-        <p class="text-desc">Halaman ini menampilkan agregasi data anonim dari simulasi pengujian yang dilakukan oleh pengguna. Logika sistem memastikan tidak ada karakter password mentah yang disimpan ke dalam database.</p>
-    </div>
+  <div class="col-12">
+    <h2 class="text-cyber mb-2">
+      <i class="fa-solid fa-chart-pie me-2"></i>Dashboard Statistik & Riwayat
+      Audit
+    </h2>
+    <p class="text-desc">
+      Halaman ini menampilkan agregasi data anonim dari simulasi pengujian yang
+      dilakukan oleh pengguna. Logika sistem memastikan tidak ada karakter
+      password mentah yang disimpan ke dalam database.
+    </p>
+  </div>
 </div>
 
 <div class="row mb-5">
-    <div class="col-md-4 mb-3">
-        <div class="card p-4 text-center border-info h-100">
-            <h5 class="text-cyber"><i class="fa-solid fa-calculator me-2"></i>Total Analisis</h5>
-            <h2 class="text-white fw-bold display-5 mt-2">{{ stats.total if stats.total else 0 }}</h2>
-            <p class="text-desc small text-muted mb-0">Jumlah sampel password yang telah diuji oleh sistem.</p>
-        </div>
+  <div class="col-md-4 mb-3">
+    <div class="card p-4 text-center border-info h-100">
+      <h5 class="text-cyber">
+        <i class="fa-solid fa-calculator me-2"></i>Total Analisis
+      </h5>
+      <h2 class="text-white fw-bold display-5 mt-2">
+        {{ stats.total if stats.total else 0 }}
+      </h2>
+      <p class="text-desc small text-muted mb-0">
+        Jumlah sampel password yang telah diuji oleh sistem.
+      </p>
     </div>
-    <div class="col-md-4 mb-3">
-        <div class="card p-4 text-center border-warning h-100">
-            <h5 class="text-warning"><i class="fa-solid fa-gauge-high me-2"></i>Rata-Rata Skor</h5>
-            <h2 class="text-white fw-bold display-5 mt-2">
-                {% if stats.avg_score %}
-                    {{ round(stats.avg_score, 1) }}%
-                {% else %}
-                    0%
-                {% endif %}
-            </h2>
-            <p class="text-desc small text-muted mb-0">Rata-rata tingkat kekuatan sandi yang dimasukkan.</p>
-        </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card p-4 text-center border-warning h-100">
+      <h5 class="text-warning">
+        <i class="fa-solid fa-gauge-high me-2"></i>Rata-Rata Skor
+      </h5>
+      <h2 class="text-white fw-bold display-5 mt-2">
+        {% if stats.avg_score %} {{ round(stats.avg_score, 1) }}% {% else %} 0%
+        {% endif %}
+      </h2>
+      <p class="text-desc small text-muted mb-0">
+        Rata-rata tingkat kekuatan sandi yang dimasukkan.
+      </p>
     </div>
-    <div class="col-md-4 mb-3">
-        <div class="card p-4 text-center border-danger h-100">
-            <h5 class="text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Rasio Kebocoran</h5>
-            <h2 class="text-white fw-bold display-5 mt-2">{{ breach_stats.breached_total if breach_stats.breached_total else 0 }}</h2>
-            <p class="text-desc small text-muted mb-0">Kasus kata sandi yang terdeteksi sudah pernah bocor di internet.</p>
-        </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="card p-4 text-center border-danger h-100">
+      <h5 class="text-danger">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>Rasio Kebocoran
+      </h5>
+      <h2 class="text-white fw-bold display-5 mt-2">
+        {{ breach_stats.breached_total if breach_stats.breached_total else 0 }}
+      </h2>
+      <p class="text-desc small text-muted mb-0">
+        Kasus kata sandi yang terdeteksi sudah pernah bocor di internet.
+      </p>
     </div>
+  </div>
 </div>
 
 <div class="card p-4">
-    <div class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center">
-        <h4 class="text-cyber mb-0"><i class="fa-solid fa-clock-history me-2"></i>10 Log Pengujian Terakhir</h4>
-        <div>
-            <button class="btn btn-sm btn-outline-danger me-2" id="btnClearAll"><i class="fa-solid fa-dumpster me-1"></i> Kosongkan Semua Log</button>
-            <span class="badge bg-dark text-cyber border border-cyber">Database Monitor</span>
-        </div>
+  <div
+    class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center"
+  >
+    <h4 class="text-cyber mb-0">
+      <i class="fa-solid fa-clock-history me-2"></i>10 Log Pengujian Terakhir
+    </h4>
+    <div>
+      <button class="btn btn-sm btn-outline-danger me-2" id="btnClearAll">
+        <i class="fa-solid fa-dumpster me-1"></i> Kosongkan Semua Log
+      </button>
+      <span class="badge bg-dark text-cyber border border-cyber"
+        >Database Monitor</span
+      >
     </div>
-    
-    <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle border-secondary">
-            <thead>
-                <tr class="text-cyber">
-                    <th>Waktu Uji (WIB)</th>
-                    <th>Panjang Karakter</th>
-                    <th>Skor Keamanan</th>
-                    <th>Kategori Hasil</th>
-                    <th>Ketahanan Serangan (GPU Array)</th>
-                    <th class="text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in history %}
-                <tr id="row-{{ row.id }}">
-                    <td class="text-white">{{ row.checked_at }}</td>
-                    <td class="text-white fw-bold">{{ row.length }} Karakter</td>
-                    <td>
-                        <span class="badge {% if row.score < 40 %}bg-danger{% elif row.score < 75 %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                            {{ row.score }} / 100
-                        </span>
-                    </td>
-                    <td>
-                        <span class="text-white fw-bold">{{ row.category }}</span>
-                    </td>
-                    <td class="text-warning font-monospace">{{ row.brute_force_duration }}</td>
-                    <td class="text-center">
-                        <button class="btn btn-outline-danger btn-sm btn-delete" data-id="{{ row.id }}">
-                        <i class="fa-solid fa-trash"></i> Hapus
-                    </button>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
-                        <i class="fa-solid fa-folder-open d-block fs-2 mb-2"></i>
-                        Belum ada riwayat pengujian di dalam database `securepass.db`.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle border-secondary">
+      <thead>
+        <tr class="text-cyber">
+          <th>Waktu Uji (WIB)</th>
+          <th>Panjang Karakter</th>
+          <th>Skor Keamanan</th>
+          <th>Kategori Hasil</th>
+          <th>Ketahanan Serangan (GPU Array)</th>
+          <th class="text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+        <tr id="row-{{ row.id }}">
+          <td class="text-white">{{ row.checked_at }}</td>
+          <td class="text-white fw-bold">{{ row.length }} Karakter</td>
+          <td>
+            <span
+              class="badge {% if row.score < 40 %}bg-danger{% elif row.score < 75 %}bg-warning text-dark{% else %}bg-success{% endif %}"
+            >
+              {{ row.score }} / 100
+            </span>
+          </td>
+          <td>
+            <span class="text-white fw-bold">{{ row.category }}</span>
+          </td>
+          <td class="text-warning font-monospace">
+            {{ row.brute_force_duration }}
+          </td>
+          <td class="text-center">
+            <button
+              class="btn btn-outline-danger btn-sm btn-delete"
+              data-id="{{ row.id }}"
+            >
+              <i class="fa-solid fa-trash"></i> Hapus
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">
+            <i class="fa-solid fa-folder-open d-block fs-2 mb-2"></i>
+            Belum ada riwayat pengujian di dalam database `securepass.db`.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-document.addEventListener('click', function(event) {
-    // 1. LOGIKA UNTUK TOMBOL HAPUS SATUAN (Aksi Hapus)
-    const deleteBtn = event.target.closest('.btn-delete');
+  document.addEventListener("click", function (event) {
+    const deleteBtn = event.target.closest(".btn-delete");
     if (deleteBtn) {
-        const id = deleteBtn.getAttribute('data-id');
-        if (confirm("Apakah Anda yakin ingin menghapus log riwayat analisis ini?")) {
-            fetch(`/delete_history/${id}`, { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const row = document.getElementById(`row-${id}`);
-                    if (row) row.remove();
-                    alert(data.message);
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat menghapus data.');
-            });
-        }
-        return; // Hentikan pengecekan jika sudah memproses tombol hapus
+      const id = deleteBtn.getAttribute("data-id");
+      if (
+        confirm("Apakah Anda yakin ingin menghapus log riwayat analisis ini?")
+      ) {
+        fetch(`/delete_history/${id}`, { method: "POST" })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success") {
+              const row = document.getElementById(`row-${id}`);
+              if (row) row.remove();
+              alert(data.message);
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Terjadi kesalahan saat menghapus data.");
+          });
+      }
+      return;
     }
 
-    // 2. LOGIKA UNTUK TOMBOL KOSONGKAN ALL LOG (Event Delegation Global)
-    const clearAllBtn = event.target.closest('#btnClearAll');
+    const clearAllBtn = event.target.closest("#btnClearAll");
     if (clearAllBtn) {
-        if (confirm("PERINGATAN KRITIS!\n\nApakah Anda yakin ingin menghapus SELURUH log riwayat audit secara permanen dari database? Tindakan ini tidak dapat dibatalkan.")) {
-            fetch('/clear_all_history', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                location.reload(); // Segarkan halaman agar tabel kosong
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan sistem saat mengosongkan database.');
-            });
-        }
+      if (
+        confirm(
+          "PERINGATAN KRITIS!\n\nApakah Anda yakin ingin menghapus SELURUH log riwayat audit secara permanen dari database? Tindakan ini tidak dapat dibatalkan.",
+        )
+      ) {
+        fetch("/clear_all_history", { method: "POST" })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.message);
+            location.reload();
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Terjadi kesalahan sistem saat mengosongkan database.");
+          });
+      }
     }
-});
+  });
 </script>
 {% endblock %}

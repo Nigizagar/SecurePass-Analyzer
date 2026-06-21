@@ -17,7 +17,6 @@ def check_password_strength(password):
     has_digit = bool(re.search(r'[0-9]', password))
     has_symbol = bool(re.search(r'[^A-Za-z0-9]', password))
 
-    # 1. Evaluasi Panjang (Bobot Maksimal 40)
     if length >= 16:
         score += 40
     elif length >= 12:
@@ -27,7 +26,6 @@ def check_password_strength(password):
     else:
         feedback.append("Password sangat pendek. Gunakan minimal 12-16 karakter.")
 
-    # 2. Evaluasi Kompleksitas Karakter (Bobot Maksimal 40)
     if has_upper: score += 10
     else: feedback.append("Tambahkan huruf besar (A-Z).")
         
@@ -40,21 +38,16 @@ def check_password_strength(password):
     if has_symbol: score += 10
     else: feedback.append("Tambahkan simbol/karakter spesial seperti (!, @, #, $, dll).")
 
-    # 3. Deteksi Pola Buruk / Rentan (Mengurangi Skor)
-    # Deteksi urutan sekuensial dasar
     if re.search(r'(123|abc|qwerty|pass)', password.lower()):
         score -= 20
         feedback.append("Terdeteksi pola keyboard atau kata kamus umum ('123', 'abc', 'qwerty', 'pass').")
 
-    # Deteksi karakter berulang berurutan (misal: aaaa, 1111)
     if re.search(r'(.)\1{3,}', password):
         score -= 15
         feedback.append("Kurangi penggunaan karakter berulang berturut-turut.")
 
-    # Normalisasi Skor ke rentang 0 - 100
     score = max(0, min(100, score))
 
-    # Tentukan Kategori
     if score >= 80:
         category = "Very Strong"
     elif score >= 60:

@@ -1,23 +1,38 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="card p-5 mx-auto" style="max-width: 800px;">
-    <h2 class="text-cyber border-bottom pb-2 mb-3"><i class="fa-solid fa-code me-2"></i>Tentang SecurePass Analyzer</h2>
-    <p class="text-desc">Aplikasi ini dirancang sebagai platform eksperimental guna mendemonstrasikan implementasi siklus pengembangan perangkat lunak yang aman (Secure SDLC) serta analisis ancaman siber pada komponen otentikasi.</p>
-    
-    <h4 class="text-cyber mt-4">Pilar Keamanan & Karakteristik Sistem (Core Security & System Architecture):</h4>
-    <ul class="text-desc mt-3">
-        <li class="mb-3">
-            <strong>Implementasi Privasi Mutlak (k-Anonymity):</strong> 
-            Menjamin kerahasiaan data pengguna dengan menerapkan prinsip <em>k-Anonymity</em> lewat transmisi parsial hash SHA-1 (5 karakter pertama) ke API eksternal, sehingga data sensitif mentah tidak pernah keluar dari ekosistem lokal.
-        </li>
-        <li class="mb-3">
-            <strong>Arsitektur Modular & Dekopling:</strong> 
-            Menggunakan pemisahan fungsi yang bersih guna mendukung skalabilitas, mempermudah pengujian unit (<em>unit testing</em>), serta menjaga aspek <em>maintainability</em> kode jangka panjang.
-        </li>
-        <li class="mb-3">
-            <strong>Pembangkit Acak Kriptografis Berstandar:</strong> 
-            Menggunakan modul acak berbasis kriptografi aman (<em>cryptographically secure</em>) untuk menghindari kerentanan tebakan pada algoritma pseudo-random tradisional.
-        </li>
-    </ul>
+{% extends 'base.html' %} {% block content %}
+<div class="card p-5 mx-auto" style="max-width: 800px">
+  <h2 class="text-cyber border-bottom pb-2 mb-3">
+    <i class="fa-solid fa-code me-2"></i>Tentang SecurePass Analyzer
+  </h2>
+  <p class="text-desc">
+    Aplikasi ini dirancang sebagai platform eksperimental guna mendemonstrasikan
+    implementasi siklus pengembangan perangkat lunak yang aman (Secure SDLC)
+    serta analisis ancaman siber pada komponen otentikasi.
+  </p>
+
+  <h4 class="text-cyber mt-4">
+    Pilar Keamanan & Karakteristik Sistem (Core Security & System Architecture):
+  </h4>
+  <ul class="text-desc mt-3">
+    <li class="mb-3">
+      <strong>Implementasi Privasi Mutlak (k-Anonymity):</strong>
+      Menjamin kerahasiaan data pengguna dengan menerapkan prinsip
+      <em>k-Anonymity</em> lewat transmisi parsial hash SHA-1 (5 karakter
+      pertama) ke API eksternal, sehingga data sensitif mentah tidak pernah
+      keluar dari ekosistem lokal.
+    </li>
+    <li class="mb-3">
+      <strong>Arsitektur Modular & Dekopling:</strong>
+      Menggunakan pemisahan fungsi yang bersih guna mendukung skalabilitas,
+      mempermudah pengujian unit (<em>unit testing</em>), serta menjaga aspek
+      <em>maintainability</em> kode jangka panjang.
+    </li>
+    <li class="mb-3">
+      <strong>Pembangkit Acak Kriptografis Berstandar:</strong>
+      Menggunakan modul acak berbasis kriptografi aman (<em
+        >cryptographically secure</em
+      >) untuk menghindari kerentanan tebakan pada algoritma pseudo-random
+      tradisional.
+    </li>
+  </ul>
 </div>
 {% endblock %}
