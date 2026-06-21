@@ -58,28 +58,37 @@ def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-    
+
 def get_history_data_wib():
-    """Fungsi khusus untuk mengambil data riwayat dan mengonversinya ke WIB."""
+    """Mengambil data riwayat dengan toleransi format tinggi untuk memastikan data selalu tampil."""
     conn = get_db_connection()
-    # Mengambil 10 log terakhir
     raw_history = conn.execute('SELECT * FROM password_analysis_history ORDER BY checked_at DESC LIMIT 10').fetchall()
     conn.close()
     
     wib_history = []
     for row in raw_history:
-        # Ubah Row object menjadi dictionary biasa agar nilainya bisa dimodifikasi
         data = dict(row)
         if 'checked_at' in data and data['checked_at']:
+            timestamp_str = str(data['checked_at']).strip()
             try:
-                # SQLite menyimpan dalam format UTC 'YYYY-MM-DD HH:MM:SS'
-                utc_time = datetime.strptime(data['checked_at'], '%Y-%m-%d %H:%M:%S')
-                utc_time = utc_time.replace(tzinfo=ZoneInfo('UTC'))
-                # Konversi langsung ke WIB (Asia/Jakarta)
-                wib_time = utc_time.astimezone(ZoneInfo('Asia/Jakarta'))
-                data['checked_at'] = wib_time.strftime('%d-%m-%Y %H:%M:%S WIB')
-            except Exception:
-                pass
+                # Opsi A: Jika data disimpan dari /analyzer baru (Format: 'YYYY-MM-DD HH:MM:SS')
+                if len(timestamp_str) == 19 and timestamp_str[4] == '-' and timestamp_str[7] == '-':
+                    dt = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                    data['checked_at'] = dt.strftime('%d-%m-%Y %H:%M:%S WIB')
+                # Opsi B: Jika data sudah mengandung teks 'WIB', biarkan saja
+                elif 'WIB' in timestamp_str:
+                    pass
+                # Opsi C: Jika data masih berformat UTC bawaan SQLite lama
+                else:
+                    utc_time = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                    utc_time = utc_time.replace(tzinfo=ZoneInfo('UTC'))
+                    wib_time = utc_time.astimezone(ZoneInfo('Asia/Jakarta'))
+                    data['checked_at'] = wib_time.strftime('%d-%m-%Y %H:%M:%S WIB')
+            except Exception as e:
+                # JIKA ERROR, JANGAN BUANG DATANYA. Tampilkan teks aslinya ke tabel agar tidak kosong!
+                print(f"Format matching bypassed: {e}")
+                data['checked_at'] = timestamp_str
+                
         wib_history.append(data)
         
     return wib_history
@@ -245,50 +254,31 @@ def analyzer():
         brute_force = estimate_brute_force(password)
         breach = check_password_breach(password)
         
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO password_analysis_history (length, score, category, brute_force_duration)
-                VALUES (?, ?, ?, ?)
-            ''', (strength['length'], strength['score'], strength['category'], brute_force['gpu_time']))
-            cursor.execute('''
-                INSERT INTO breach_checks (is_breached, breach_count)
-                VALUES (?, ?)
-            ''', (1 if breach['is_breached'] else 0, breach['count']))
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print(f"Database Logging Error: {e}")
+        # Buka koneksi
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Ambil waktu WIB sekarang secara aktual
+        wib_now = datetime.now(ZoneInfo('Asia/Jakarta')).strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Eksekusi insert ke tabel history
+        cursor.execute('''
+            INSERT INTO password_analysis_history (length, score, category, brute_force_duration, checked_at)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (strength['length'], strength['score'], strength['category'], brute_force['gpu_time'], wib_now))
+        
+        # Eksekusi insert ke tabel breach (sesuaikan nama kolom database Anda di sini)
+        cursor.execute('''
+            INSERT INTO breach_checks (is_breached, breach_count)
+            VALUES (?, ?)
+        ''', (1 if breach['is_breached'] else 0, breach['count']))
+        
+        # Commit dan tutup
+        conn.commit()
+        conn.close()
 
         return jsonify({"strength": strength, "brute_force": brute_force, "breach": breach})
     return render_template('analyzer.html')
-
-@app.route('/generator', methods=['GET', 'POST'])
-def generator():
-    if request.method == 'POST':
-        length = int(request.form.get('length', 14))
-        upper = request.form.get('upper') == 'true'
-        lower = request.form.get('lower') == 'true'
-        digits = request.form.get('digits') == 'true'
-        symbols = request.form.get('symbols') == 'true'
-        
-        pwd = generate_secure_password(length, upper, lower, digits, symbols)
-        
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO generated_passwords (length, includes_uppercase, includes_lowercase, includes_numbers, includes_symbols)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (length, int(upper), int(lower), int(digits), int(symbols)))
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print(f"Database Logging Error: {e}")
-
-        return jsonify({"password": pwd})
-    return render_template('generator.html')
 
 @app.route('/history')
 def history():
